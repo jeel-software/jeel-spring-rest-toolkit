@@ -1,0 +1,186 @@
+package <%= package %>.http.controllers;
+
+import <%= package %>.http.resources.request.<%= classify(entity) %>Request;
+import <%= package %>.http.resources.response.<%= classify(entity) %>Response;
+import <%= package %>.model.<%= classify(entity) %>;
+import <%= package %>.search.<%= classify(entity) %>Search;
+import <%= package %>.service.<%= classify(entity) %>Service;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@RestController
+@RequestMapping(value = "/api/v1")
+public class <%= classify(entity) %>Controller extends BaseController {
+
+    @Autowired
+    <%= classify(entity) %>Service service;
+    @Autowired
+    ModelMapper modelMapper;
+
+    @ApiOperation(value = "Add a new <%= lowercase(title) %>", nickname = "add<%= classify(entity) %>", notes = "", tags={ "<%= lowercase(titlePluralized) %>", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created"),
+            @ApiResponse(code = 400, message = "Bad Request") })
+
+    @PostMapping("/<%= underscore(entityPluralized)  %>")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
+    public <%= classify(entity) %>Response create<%= classify(entity) %>(@RequestBody @Valid <%= classify(entity) %>Request body,
+                                                 BindingResult result) {
+        verify(result);
+
+        <%= classify(entity) %> data = modelMapper.map(body, <%= classify(entity) %>.class);
+        <%= classify(entity) %> created = service.create<%= classify(entity) %>(data);
+
+        <%= classify(entity) %>Response response = modelMapper.map(created, <%= classify(entity) %>Response.class);
+        addRootLink(response);
+        addSelfLink(response);
+
+        return response;
+    }
+
+    @ApiOperation(value = "Deletes a <%= lowercase(title) %>", nickname = "delete<%= classify(entity) %>", notes = "", tags={ "<%= lowercase(titlePluralized) %>", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "No content"),
+            @ApiResponse(code = 400, message = "Bad Request"),
+            @ApiResponse(code = 404, message = "<%= lowercase(title) %> not found") })
+
+    @DeleteMapping("/<%= underscore(entityPluralized)  %>/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete<%= classify(entity) %>(@PathVariable(name = "id") Long id) {
+        service.delete<%= classify(entity) %>(id);
+    }
+
+    @ApiOperation(value = "Find existing <%= lowercase(titlePluralized) %>", nickname = "findAll<%= classify(entity) %>", notes = "Multiple search parasm can be provided", response = <%= classify(entity) %>Response.class, responseContainer = "List", tags={ "<%= lowercase(titlePluralized) %>", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "successful operation", response = <%= classify(entity) %>Response.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "Bad Request") })
+
+    @GetMapping("/<%= underscore(entityPluralized)  %>")
+    @ResponseBody
+    public Map findAll<%= classify(entity) %>s(
+            @RequestParam(name = "paginate", defaultValue = "false") boolean paginate,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "order_by", required = false) String[] orderBy,
+            @RequestParam(name = "oids", required = false) Long[] oids,
+            @RequestParam(name = "q", required = false) String q) {
+
+        Map response = new HashMap();
+
+        <%= classify(entity) %>Search search = <%= classify(entity) %>Search.builder()
+                .paginate(paginate)
+                .page(page)
+                .size(size)
+                .orderBy(orderBy)
+                .oids(oids)
+                .q(q)
+                .build();
+
+        List<<%= classify(entity) %>Response> data =
+                service.findAll<%= classify(entity) %>(search)
+                        .stream()
+                        .map(item -> modelMapper.map(item, <%= classify(entity) %>Response.class))
+                        .collect(Collectors.toList());
+
+
+        data.forEach(item -> addSelfLink(item));
+
+        int filteredCount = service.count<%= classify(entity) %>(search);
+        int totalCount = service.count<%= classify(entity) %>(new <%= classify(entity) %>Search());
+
+        buildResponseMap(response, search, data, filteredCount, totalCount);
+
+
+        return response;
+    }
+
+    @ApiOperation(value = "Find <%= lowercase(title) %> by ID", nickname = "get<%= classify(entity) %>ById", notes = "Returns a single <%= lowercase(title) %>", response = <%= classify(entity) %>Response.class, tags={ "<%= lowercase(titlePluralized) %>", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "successful operation", response = <%= classify(entity) %>Response.class),
+            @ApiResponse(code = 400, message = "Bad Request"),
+            @ApiResponse(code = 404, message = "Pet not found") })
+
+    @GetMapping("/<%= underscore(entityPluralized)  %>/{id}")
+    @ResponseBody
+    public <%= classify(entity) %>Response get<%= classify(entity) %>ById(@PathVariable(name = "id") Long id) {
+        <%= classify(entity) %> found = service.find<%= classify(entity) %>(id).get();
+        <%= classify(entity) %>Response response = modelMapper.map(found, <%= classify(entity) %>Response.class);
+        addRootLink(response);
+        addHistoryLink(response);
+        return response;
+    }
+
+    @ApiOperation(value = "Update an existing <%= lowercase(title) %>", nickname = "update<%= classify(entity) %>", notes = "", tags={ "<%= lowercase(titlePluralized) %>", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "No content"),
+            @ApiResponse(code = 400, message = "Bad Request"),
+            @ApiResponse(code = 404, message = "<%= lowercase(title) %> not found"),
+            @ApiResponse(code = 405, message = "Validation exception") })
+
+    @PutMapping("/<%= underscore(entityPluralized)  %>")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update<%= classify(entity) %>(@RequestBody @Valid <%= classify(entity) %>Request body,
+                                  BindingResult result) {
+        verify(result);
+
+        <%= classify(entity) %> data = modelMapper.map(body, <%= classify(entity) %>.class);
+        service.update<%= classify(entity) %>(data);
+    }
+
+    @ApiOperation(value = "Find <%= lowercase(title) %> history", nickname = "history<%= classify(entity) %>", response = <%= classify(entity) %>Response.class, tags = {
+            "<%= lowercase(titlePluralized) %>",})
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "successful operation", response = <%= classify(entity) %>Response.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "Bad Request") })
+
+    @GetMapping("/<%= underscore(entityPluralized)  %>/{id}/history")
+    @ResponseBody
+    public List<<%= classify(entity) %>Response> findRevisions(
+           @PathVariable("id") Long id) {
+
+        List<<%= classify(entity) %>> revisions = service.find<%= classify(entity) %>History(id);
+
+        List<<%= classify(entity) %>Response> data = revisions.stream()
+                .filter(item -> item != null)
+                .map(item -> modelMapper.map(item, <%= classify(entity) %>Response.class))
+                .collect(Collectors.toList());
+
+        data.forEach(item -> addSelfLink(item));
+
+        return data;
+    }
+
+
+
+    private void addRootLink(<%= classify(entity) %>Response response) {
+        response.add(linkTo(<%= classify(entity) %>Controller.class)
+                .slash("<%= underscore(entityPluralized)  %>").withRel("<%= underscore(entityPluralized)  %>"));
+    }
+    private void addSelfLink(<%= classify(entity) %>Response item) {
+        item.add(linkTo(
+                methodOn(<%= classify(entity) %>Controller.class)
+                        .get<%= classify(entity) %>ById(item.getOid())).withSelfRel());
+    }    
+    private void addHistoryLink(<%= classify(entity) %>Response item) {
+        item.add(linkTo(
+                methodOn(<%= classify(entity) %>Controller.class)
+                        .findRevisions(item.getOid())).withRel("history"));
+    }
+}

@@ -1,0 +1,73 @@
+package <%= package %>.repository;
+
+import <%= package %>.model.<%= classify(entity)  %>;
+import <%= package %>.search.<%= classify(entity)  %>Search;
+import com.github.springtestdbunit.DbUnitTestExecutionListener;
+import com.github.springtestdbunit.annotation.DatabaseSetup;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@DataJpaTest
+@ActiveProfiles("test")
+@TestExecutionListeners({
+        DependencyInjectionTestExecutionListener.class,
+        TransactionalTestExecutionListener.class,
+        DbUnitTestExecutionListener.class })
+@DatabaseSetup("classpath:datasets/<%= dasherize(entity)  %>-dataset.xml")
+public class <%= classify(entity)  %>RepositoryTest {
+
+    @Autowired
+    private TestEntityManager em;
+
+    @Autowired
+    private <%= classify(entity)  %>Repository repository;
+
+    @Test
+    public void shouldDelete() {
+        repository.deleteById(1L);
+        <%= classify(entity)  %> result = em.find(<%= classify(entity)  %>.class, 1L);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void shouldFindAll(){
+        List<<%= classify(entity)  %>> result = repository.findAll(
+                <%= classify(entity)  %>Search.builder()
+                        .build());
+        assertThat(result).hasSize(10);
+    }
+
+    @Test
+    public void shouldFindAllPaginated(){
+        List<<%= classify(entity)  %>> result = repository.findAll(
+                <%= classify(entity)  %>Search.builder()
+                        .paginate(true)
+                        .page(0)
+                        .size(5)
+                        .build());
+        assertThat(result).hasSize(5);
+    }
+
+
+    @Test
+    public void shouldCount(){
+        int result = repository.count(
+                <%= classify(entity)  %>Search.builder()
+                        .build());
+        assertThat(result).isEqualTo(10);
+    }
+    
+}

@@ -1,0 +1,74 @@
+package <%= package %>.util;
+
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
+
+import java.util.Calendar;
+import java.util.List;
+import java.util.stream.Stream;
+
+public class QueryDslHelper {
+    public void stringLike(BooleanBuilder builder, String q, StringPath... fields) {
+        if (q != null) {
+            BooleanBuilder internalBuilder = new BooleanBuilder();
+            Stream.of(fields).forEach(field -> {
+                internalBuilder.or(field.toLowerCase().like("%" + q.toLowerCase() + "%"));
+            });
+            builder.and(internalBuilder);
+        }
+
+    }
+
+    public void dateLoe(BooleanBuilder builder, Calendar endDate, DateTimePath<Calendar> date) {
+        if(endDate != null){
+            builder.and(date.loe(endDate));
+        }
+    }
+
+    public void dateGoe(BooleanBuilder builder, Calendar startDate, DateTimePath<Calendar> date) {
+        if(startDate != null){
+            builder.and(date.goe(startDate));
+        }
+    }
+
+    public void numberInArray(BooleanBuilder builder, Long[] oids, NumberPath<Long> oid) {
+        if (oids != null) {
+            builder.and(oid.in(oids));
+        }
+    }
+
+    public void addOrderBy(String orderByItem, StringPath path, List<OrderSpecifier<?>> orderSpecifierList){
+        if (hasDescOperator(orderByItem)) {
+            orderSpecifierList.add(path.desc());
+            return;
+        }
+        orderSpecifierList.add(path.asc());
+    }
+    public void addOrderBy(String orderByItem, NumberPath path, List<OrderSpecifier<?>> orderSpecifierList){
+        if (hasDescOperator(orderByItem)) {
+            orderSpecifierList.add(path.desc());
+            return;
+        }
+        orderSpecifierList.add(path.asc());
+    }
+
+    private boolean hasDescOperator(String orderByItem) {
+        return orderByItem.startsWith("-");
+    }
+
+    public String getField(String orderByItem) {
+        String field;
+        if (hasDescOperator(orderByItem)) {
+            field = orderByItem.substring(1);
+        } else {
+            field = orderByItem;
+        }
+        return field;
+    }
+
+
+
+}

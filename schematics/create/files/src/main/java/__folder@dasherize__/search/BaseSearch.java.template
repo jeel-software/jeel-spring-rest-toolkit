@@ -1,0 +1,15 @@
+package <%= package %>.search;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class BaseSearch {
+    protected String [] orderBy;
+    protected boolean paginate;
+    protected Integer page;
+    protected Integer size;
+}

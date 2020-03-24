@@ -1,0 +1,12 @@
+package <%= package %>.repository;
+
+import <%= package %>.model.<%= classify(entity) %>;
+import <%= package %>.search.<%= classify(entity) %>Search;
+
+import java.util.List;
+
+public interface <%= classify(entity) %>RepositoryCustom {
+    List<<%= classify(entity) %>> findAll(<%= classify(entity) %>Search search);
+    int count(<%= classify(entity) %>Search search);
+    List<<%= classify(entity) %>> findHistory(Long id);
+}

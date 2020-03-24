@@ -1,0 +1,203 @@
+package <%= package %>.http.controllers;
+
+import <%= package %>.config.WebSecurityConfig;
+import <%= package %>.http.resources.request.<%= classify(entity)  %>Request;
+import <%= package %>.http.resources.response.<%= classify(entity)  %>Response;
+import <%= package %>.model.<%= classify(entity)  %>;
+import <%= package %>.search.<%= classify(entity)  %>Search;
+import <%= package %>.service.<%= classify(entity)  %>Service;
+import <%= package %>.util.MessageUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Import(WebSecurityConfig.class)
+@RunWith(SpringRunner.class)
+@WebMvcTest(<%= classify(entity)  %>Controller.class)
+public class <%= classify(entity)  %>ControllerTest {
+    @Autowired
+    private MockMvc mvc;
+
+    @MockBean
+    private <%= classify(entity)  %>Service service;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @Autowired
+    MessageUtil messageUtil;
+
+
+    @Test
+    public void shouldReceiveCreatedResponse() throws Exception {
+        <%= classify(entity)  %>Request request = <%= classify(entity)  %>Request.builder()
+                .build();
+
+        <%= classify(entity)  %>Response response = <%= classify(entity)  %>Response.builder()
+                .oid(601L).build();
+
+        when(service.create<%= classify(entity)  %>(modelMapper.map(request, <%= classify(entity)  %>.class)))
+                .thenReturn(modelMapper.map(response, <%= classify(entity)  %>.class));
+
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        final String json = jsonMapper.writeValueAsString(request);
+
+        mvc.perform(post("/api/v1/<%= underscore(entityPluralized)  %>")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void shouldAdd<%= classify(entity)  %>() throws Exception {
+
+        <%= classify(entity)  %>Request request = <%= classify(entity)  %>Request.builder()
+                .build();
+
+        <%= classify(entity)  %>Response response = <%= classify(entity)  %>Response.builder()
+                .oid(1L)
+                .build();
+
+        when(service.create<%= classify(entity)  %>(modelMapper.map(request, <%= classify(entity)  %>.class)))
+                .thenReturn(modelMapper.map(response, <%= classify(entity)  %>.class));
+
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        final String json = jsonMapper.writeValueAsString(request);
+
+        mvc.perform(post("/api/v1/<%= underscore(entityPluralized)  %>")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(jsonPath("$.oid", equalTo(1)));
+    }
+
+
+
+
+ @Test
+    public void shouldNotCreate<%= classify(entity)  %>WithNullValues() throws Exception {
+        <%= classify(entity)  %>Request request = <%= classify(entity)  %>Request.builder()
+                .build();
+
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        final String json = jsonMapper.writeValueAsString(request);
+
+        mvc.perform(post("/api/v1/<%= underscore(entityPluralized)  %>")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(jsonPath("$.message", equalTo("Validation Exception")))
+        <% for (let attribute of attributes) { %>
+                <% if (!attribute.nullable) { %>
+                .andExpect(jsonPath("$.errors", hasItem(messageUtil.getMessage("validation.<%= underscore(entity) %>.<%= underscore(attribute.name) %>.not_null"))))
+                <% } %>
+        <% } %>
+                .andExpect(status().isNotAcceptable());
+    }
+   
+    @Test
+    public void shouldNotCreate<%= classify(entity)  %>WithLargeValues() throws Exception {
+        <%= classify(entity)  %>Request request = <%= classify(entity)  %>Request.builder()
+        <% for (let attribute of attributes) { %>
+        <% if (attribute.type == 'String') { %>
+               .<%= camelize(attribute.name)  %>("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque sodales semper orci, " +
+                       "ut placerat lacus dapibus non. Nullam interdum, nulla eu tempor pretium, ex mi ornare quam, " +
+                       "sit amet tincidunt ligula dui dignissim erat. Sed vestibulum nisi dui, nec volutpat metus " +
+                       "auctor hendrerit. Nullam nullam. ")
+        <% }%>
+        <% }%>
+                .build();
+
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        final String json = jsonMapper.writeValueAsString(request);
+
+        mvc.perform(post("/api/v1/<%= underscore(entityPluralized)  %>")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(jsonPath("$.message", equalTo("Validation Exception")))
+        <% for (let attribute of attributes) { %>
+        <% if (attribute.type == 'String') { %>
+                .andExpect(jsonPath("$.errors", hasItem(messageUtil.getMessage("validation.<%= underscore(entity) %>.<%= underscore(attribute.name) %>.max"))))
+        <% }%>
+        <% }%>
+                .andExpect(status().isNotAcceptable());
+    }
+
+    @Test
+    public void shouldDelete<%= classify(entity)  %>() throws Exception {
+
+        doNothing().when(service).delete<%= classify(entity)  %>(2L);
+
+        mvc.perform(delete("/api/v1/<%= underscore(entityPluralized)  %>/2"))
+                .andExpect(status().isNoContent());
+
+        verify(service, times(1)).delete<%= classify(entity)  %>(2L);
+    }
+
+    @Test
+    public void shouldFindAll<%= classify(entity)  %>() throws Exception {
+        List<<%= classify(entity)  %>> list = Arrays.asList(
+                <%= classify(entity)  %>.builder().oid(1L).build(),
+                <%= classify(entity)  %>.builder().oid(2L).build(),
+                <%= classify(entity)  %>.builder().oid(3L).build(),
+                <%= classify(entity)  %>.builder().oid(4L).build(),
+                <%= classify(entity)  %>.builder().oid(5L).build()
+        );
+
+        given(service.findAll<%= classify(entity)  %>(any(<%= classify(entity)  %>Search.class))).willReturn(list);
+
+        mvc.perform(get("/api/v1/<%= underscore(entityPluralized)  %>"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(5)));
+    }
+
+    @Test
+    public void shouldFind<%= classify(entity)  %>() throws Exception {
+        <%= classify(entity)  %> data = <%= classify(entity)  %>.builder().oid(2L).build();
+        given(service.find<%= classify(entity)  %>(2L)).willReturn(Optional.of(data));
+
+        mvc.perform(get("/api/v1/<%= underscore(entityPluralized)  %>/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.oid", equalTo(2)));
+    }
+
+    @Test
+    public void shouldUpdate<%= classify(entity)  %>() throws Exception {
+        <%= classify(entity)  %>Request request = <%= classify(entity)  %>Request.builder()
+                .build();
+
+
+        doNothing().when(service).update<%= classify(entity)  %>(modelMapper.map(request, <%= classify(entity)  %>.class));
+
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        final String json = jsonMapper.writeValueAsString(request);
+
+        mvc.perform(put("/api/v1/<%= underscore(entityPluralized)  %>")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isNoContent());
+
+
+        verify(service, times(1)).update<%= classify(entity)  %>(modelMapper.map(request, <%= classify(entity)  %>.class));
+    }
+}

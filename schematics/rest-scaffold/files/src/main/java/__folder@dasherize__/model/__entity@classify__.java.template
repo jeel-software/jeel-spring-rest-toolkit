@@ -1,0 +1,31 @@
+package <%= package %>.model;
+
+import lombok.*;
+import org.hibernate.envers.Audited;
+import javax.persistence.*;
+
+@Entity
+@Table(name = "<%= uppercase(table) %>")
+
+@Audited
+
+@Data
+@Builder
+@EqualsAndHashCode(of = "oid")
+@AllArgsConstructor
+@NoArgsConstructor
+public class <%= classify(entity) %> {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "OID")
+    private Long oid;
+<% for (let attribute of attributes) { %>
+    @Column(name = "<%= uppercase(underscore(attribute.name)) %>"<% if (!attribute.nullable) { %>, nullable = false<% }%>)
+<% if (attribute.type == 'Date' || attribute.type == 'Calendar') { %>
+    @Temporal(TemporalType.DATE)
+<% }%>
+    private <%= attribute.type %> <%= camelize(attribute.name) %>;
+<% } %>
+   
+}

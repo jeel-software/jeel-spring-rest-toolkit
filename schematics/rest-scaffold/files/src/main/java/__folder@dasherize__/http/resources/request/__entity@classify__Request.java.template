@@ -1,0 +1,33 @@
+package <%= package %>.http.resources.request;
+
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.NotNull;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class <%= classify(entity) %>Request {
+
+  @ApiModelProperty(value = "oid")
+  private Long oid;
+<% for (let attribute of attributes) { %>
+  @ApiModelProperty(value = "<%= lowercase(attribute.label) %>")
+<% if (!attribute.nullable) { %>
+  @NotNull(message = "{validation.<%= underscore(entity) %>.<%= underscore(attribute.name) %>.not_null}")
+<% }%>
+<% if (attribute.type == 'String') { %>
+  @Length(max = 255, message = "{validation.<%= underscore(entity) %>.<%= underscore(attribute.name) %>.max}")
+<% }%>
+<% if (attribute.type == 'Date' || attribute.type == 'Calendar') { %>
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+<% }%>
+  private <%= attribute.type %> <%= camelize(attribute.name) %>;
+<% } %>
+
+}

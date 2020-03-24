@@ -1,0 +1,21 @@
+package <%= package %>.search;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+public class <%= classify(entity) %>Search  extends BaseSearch{
+    @Builder
+    public <%= classify(entity) %>Search(String[] orderBy, boolean paginate, Integer page, Integer size, 
+                                        Long[] oids, String q) {
+        super(orderBy, paginate, page, size);
+        this.oids = oids;
+        this.q = q;
+    }
+
+    public <%= classify(entity) %>Search() {
+    }
+
+    private Long[] oids;
+    private String q;
+}

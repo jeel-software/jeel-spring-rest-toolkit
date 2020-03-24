@@ -1,0 +1,135 @@
+package <%= package %>.service;
+
+import <%= package %>.model.<%= classify(entity)  %>;
+import <%= package %>.repository.<%= classify(entity)  %>Repository;
+import <%= package %>.repository.DefaultRepositoryFactory;
+import <%= package %>.search.<%= classify(entity)  %>Search;
+import <%= package %>.util.MessageUtil;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class <%= classify(entity)  %>ServiceImplTest {
+    <%= classify(entity)  %>Repository mockedRepository;
+    MessageUtil mockeMessageUtil;
+
+    @Before
+    public void setup(){
+        mockedRepository = mock(<%= classify(entity)  %>Repository.class);
+    }
+
+    @Test
+    public void mustCreate<%= classify(entity)  %>(){
+
+        <%= classify(entity)  %> data = <%= classify(entity)  %>.builder().build();
+
+        when(mockedRepository.save(data)).thenReturn(data);
+
+        <%= classify(entity)  %>ServiceImpl service = getService(mockedRepository);
+
+        <%= classify(entity)  %> expected = service.create<%= classify(entity)  %>(data);
+
+        assertThat(expected).isEqualTo(data);
+        verify(mockedRepository, times(1)).save(data);
+        verifyNoMoreInteractions(mockedRepository);
+
+    }
+
+
+    @Test
+    public void mustFindAll<%= classify(entity)  %>(){
+
+        <%= classify(entity)  %>Search search = <%= classify(entity)  %>Search.builder().build();
+
+        List<<%= classify(entity)  %>> data = Arrays.asList(
+                <%= classify(entity)  %>.builder().oid(1L).build(),
+                <%= classify(entity)  %>.builder().oid(2L).build(),
+                <%= classify(entity)  %>.builder().oid(3L).build(),
+                <%= classify(entity)  %>.builder().oid(4L).build()
+        );
+
+        when(mockedRepository.findAll(any(<%= classify(entity)  %>Search.class))).thenReturn(data);
+
+        <%= classify(entity)  %>ServiceImpl service = getService(mockedRepository);
+
+        List<<%= classify(entity)  %>> expected = service.findAll<%= classify(entity)  %>(search);
+
+        assertThat(expected).hasSize(4);
+        verify(mockedRepository, times(1)).findAll(any(<%= classify(entity)  %>Search.class));
+        verifyNoMoreInteractions(mockedRepository);
+
+
+    }
+
+    @Test
+    public void mustDelete<%= classify(entity)  %>(){
+        <%= classify(entity)  %> data = <%= classify(entity)  %>.builder().oid(3L).build();
+
+        doNothing().when(mockedRepository).deleteById(data.getOid());
+        when(mockedRepository.findById(data.getOid())).thenReturn(Optional.of(data));
+
+        <%= classify(entity)  %>ServiceImpl service = getService(mockedRepository);
+
+        service.delete<%= classify(entity)  %>(3L);
+
+        verify(mockedRepository, times(1)).findById(data.getOid());
+        verify(mockedRepository, times(1)).delete(data);
+        verifyNoMoreInteractions(mockedRepository);
+    }
+
+    @Test
+    public void mustFind<%= classify(entity)  %>(){
+
+        <%= classify(entity)  %> data = <%= classify(entity)  %>.builder().oid(1L).build();
+
+        when(mockedRepository.findById(1L)).thenReturn(Optional.of(data));
+
+        <%= classify(entity)  %>ServiceImpl service = getService(mockedRepository);
+
+        <%= classify(entity)  %> expected = service.find<%= classify(entity)  %>(1L).get();
+
+        assertThat(expected).isEqualTo(data);
+        verify(mockedRepository, times(1)).findById(1L);
+        verifyNoMoreInteractions(mockedRepository);
+
+    }
+
+    @Test
+    public void mustUpdate<%= classify(entity)  %>(){
+
+        <%= classify(entity)  %> data = <%= classify(entity)  %>.builder().oid(3L).build();
+
+        when(mockedRepository.save(data)).thenReturn(data);
+        when(mockedRepository.findById(data.getOid())).thenReturn(Optional.of(data));
+
+        <%= classify(entity)  %>ServiceImpl service = getService(mockedRepository);
+
+        service.update<%= classify(entity)  %>(data);
+
+        verify(mockedRepository, times(1)).findById(data.getOid());
+        verify(mockedRepository, times(1)).save(data);
+        verifyNoMoreInteractions(mockedRepository);
+
+    }
+
+    private <%= classify(entity)  %>ServiceImpl getService(<%= classify(entity)  %>Repository mockedRepository) {
+
+        <%= classify(entity)  %>ServiceImpl service = new <%= classify(entity)  %>ServiceImpl();
+        DefaultRepositoryFactory mockedFactory = mock(DefaultRepositoryFactory.class);
+        when(mockedFactory.get<%= classify(entity)  %>Repository()).thenReturn(mockedRepository);
+        service.setRepositoryFactory(mockedFactory);
+
+        return service;
+
+    }
+
+}

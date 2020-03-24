@@ -1,0 +1,11 @@
+package <%= package %>.repository;
+
+import <%= package %>.model.<%= classify(entity) %>;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface <%= classify(entity) %>Repository extends PagingAndSortingRepository<<%= classify(entity) %>, Long>,
+        <%= classify(entity) %>RepositoryCustom, QuerydslPredicateExecutor<<%= classify(entity) %>> {
+}

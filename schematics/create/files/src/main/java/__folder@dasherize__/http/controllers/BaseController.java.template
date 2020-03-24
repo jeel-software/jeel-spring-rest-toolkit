@@ -1,0 +1,47 @@
+package <%= package %>.http.controllers;
+
+import <%= package %>.exception.ValidationException;
+import <%= package %>.search.BaseSearch;
+import org.springframework.validation.BindingResult;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class BaseController {
+    protected void verify(BindingResult result) {
+        if (result.hasErrors()) {
+            List<String> messages = result.getAllErrors().stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.toList());
+
+            Map<String, Object> erro = new HashMap<>();
+            erro.put("errors", messages);
+
+            throw new ValidationException(erro);
+        }
+    }
+
+
+    protected Map buildResponseMap(Map response, BaseSearch search, Object data, int filteredCount, int totalCount) {
+        if(search.isPaginate()){
+
+            int totalPages = filteredCount / search.getSize();
+
+            if (filteredCount % search.getSize() > 0) {
+                totalPages++;
+            }
+
+            response.put("page", search.getPage());
+            response.put("size", search.getSize());
+            response.put("totalPages", totalPages);
+
+        }
+        response.put("data", data);
+        response.put("filteredCount", filteredCount);
+        response.put("totalCount", totalCount);
+
+        return response;
+    }
+}

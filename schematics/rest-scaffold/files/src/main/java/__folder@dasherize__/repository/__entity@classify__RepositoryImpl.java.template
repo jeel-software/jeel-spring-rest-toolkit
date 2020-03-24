@@ -1,0 +1,115 @@
+package <%= package %>.repository;
+
+import <%= package %>.model.<%= classify(entity) %>;
+import <%= package %>.model.Q<%= classify(entity) %>;
+import <%= package %>.search.<%= classify(entity) %>Search;
+import <%= package %>.util.QueryDslHelper;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.jpa.impl.JPAQuery;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.AuditReaderFactory;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class <%= classify(entity) %>RepositoryImpl implements <%= classify(entity) %>RepositoryCustom {
+    @Autowired
+    private EntityManager manager;
+    @Autowired
+    private QueryDslHelper queryDslHelper;
+
+    @Override
+    public List<<%= classify(entity) %>> findAll(<%= classify(entity) %>Search search) {
+        JPAQuery<<%= classify(entity) %>> query = new JPAQuery<>(manager);
+        Q<%= classify(entity) %> <%= camelize(entity) %> = Q<%= classify(entity) %>.<%= camelize(entity) %>;
+
+        List<<%= classify(entity) %>> result;
+        if (search.isPaginate()) {
+            result = query.select(<%= camelize(entity) %>)
+                    .where(buildPredicate(search))
+                    .limit(search.getSize())
+                    .offset(search.getSize() * search.getPage())
+                    .from(<%= camelize(entity) %>)
+                    .orderBy(buildOrderBy(search))
+                    .fetch();
+        } else {
+            result = query.select(<%= camelize(entity) %>)
+                    .where(buildPredicate(search))
+                    .from(<%= camelize(entity) %>)
+                    .orderBy(buildOrderBy(search))
+                    .fetch();
+        }
+        return result;
+    }
+
+    @Override
+    public int count(<%= classify(entity) %>Search search) {
+        JPAQuery<<%= classify(entity) %>> query = new JPAQuery<>(manager);
+        Q<%= classify(entity) %> <%= camelize(entity) %> = Q<%= classify(entity) %>.<%= camelize(entity) %>;
+        return (int) query.select(<%= camelize(entity) %>)
+                .where(buildPredicate(search))
+                .from(<%= camelize(entity) %>).fetchCount();
+    }
+    @Override
+    public List<<%= classify(entity) %>> findHistory(Long id) {
+        AuditReader auditReader = AuditReaderFactory.get(manager);
+        List<Number> revisionNumbers = auditReader.getRevisions(<%= classify(entity) %>.class, id);
+
+        List<<%= classify(entity) %>> revisions = revisionNumbers.stream()
+                .map(number -> auditReader.find(<%= classify(entity) %>.class, id, number))
+                .collect(Collectors.toList());
+
+        Collections.reverse(revisions);
+
+        return revisions;
+    }
+    public BooleanBuilder buildPredicate(<%= classify(entity) %>Search search) {
+        BooleanBuilder builder = new BooleanBuilder();
+        Q<%= classify(entity) %> <%= camelize(entity) %> = Q<%= classify(entity) %>.<%= camelize(entity) %>;
+
+        queryDslHelper.numberInArray(builder, search.getOids(), <%= camelize(entity) %>.oid);
+
+        return builder;
+    }
+
+
+    private OrderSpecifier<?>[] buildOrderBy(<%= classify(entity) %>Search search) {
+        List<OrderSpecifier<?>> orderSpecifierList = new ArrayList<OrderSpecifier<?>>();
+        Q<%= classify(entity) %> <%= camelize(entity) %> = Q<%= classify(entity) %>.<%= camelize(entity) %>;
+
+        if (search.getOrderBy() == null) {
+            return new OrderSpecifier<?>[0];
+        }
+
+
+        Stream.of(search.getOrderBy()).forEach(orderByItem -> {
+
+            if (orderByItem == null
+                    || orderByItem.isEmpty()) {
+                return;
+            }
+
+            String field = queryDslHelper.getField(orderByItem);
+
+            switch (field) {
+                case "oid":
+                    queryDslHelper.addOrderBy(orderByItem, <%= camelize(entity) %>.oid, orderSpecifierList);
+                    break;
+                default:
+                    break;
+            }
+
+        });
+
+        return orderSpecifierList
+                .toArray(new OrderSpecifier<?>[orderSpecifierList.size()]);
+    }
+
+
+}

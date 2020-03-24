@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "id": "SchematicsCrudScaffold",
+  "title": "Crud Scaffold Schema",
+  "type": "object",
+  "properties": {
+    "entity": {
+      "description": "The entity name dash separator.",
+      "type": "string",
+      "x-prompt": "whats the entity name? Ps.: use dash separator"
+    },
+    "entityPluralized": {
+      "description": "The pluralized entity name using dash separator.",
+      "type": "string",
+      "x-prompt": "whats the entity pluralized name? Ps.: use dash separator"
+    },
+    "title": {
+      "description": "The title of the entity in cursive.",
+      "type": "string",
+      "x-prompt": "whats the title of the entity in cursive form?"
+    },
+    "titlePluralized": {
+      "description": "The pluralized title of the entity in cursive.",
+      "type": "string",
+      "x-prompt": "whats the pluralized title of the entity in cursive form?"
+    },
+    "package": {
+      "description": "The package.",
+      "type": "string",
+      "x-prompt": "whats package?"
+    },
+    "table": {
+      "description": "The table name for entity.",
+      "type": "string",
+      "x-prompt": "whats table name?"
+    },
+    "attributes": {
+      "description": "The attributes of the model.",
+      "type": "string",
+      "x-prompt": "whats the model attributes? Inform separated by commas. Use this format: name:type:nullable:. Ex.: attribute1:number:true:Label of attribute1, attribute2:string:false:Label of attribute2"
+    }
+  },
+  "required": ["entity", "entityPluralized", "title", "titlePluralized", "package"]
+}

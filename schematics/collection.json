@@ -1,0 +1,15 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "rest-scaffold": {
+      "description": "A rest scaffold schematic.",
+      "factory": "./rest-scaffold/index#restScaffold",
+      "schema": "./rest-scaffold/schema.json"
+    },
+    "create": {
+      "description": "A create helper schematic.",
+      "factory": "./create/index#create",
+      "schema": "./create/schema.json"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+package <%= package %>.service;
+
+import <%= package %>.exception.NotFoundException;
+import <%= package %>.model.<%= classify(entity) %>;
+import <%= package %>.repository.<%= classify(entity) %>Repository;
+import <%= package %>.repository.DefaultRepositoryFactory;
+import <%= package %>.repository.RepositoryFactory;
+import <%= package %>.search.<%= classify(entity) %>Search;
+import <%= package %>.util.MessageUtil;
+import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class <%= classify(entity) %>ServiceImpl implements <%= classify(entity) %>Service {
+    @Autowired
+    private RepositoryFactory repositoryFactory;
+
+    @Autowired
+    private MessageUtil messageUtil;
+
+    public void setRepositoryFactory(DefaultRepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
+    }
+
+    @Override
+    public <%= classify(entity) %> create<%= classify(entity) %>(<%= classify(entity) %> data) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        return repository.save(data);
+    }
+
+    @Override
+    public List<<%= classify(entity) %>> findAll<%= classify(entity) %>(<%= classify(entity) %>Search search) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        return Lists.newArrayList(repository.findAll(search));
+    }
+
+    @Override
+    public int count<%= classify(entity) %>(<%= classify(entity) %>Search search) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        return repository.count(search);
+    }
+
+    @Override
+    public void delete<%= classify(entity) %>(Long oid) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        <%= classify(entity) %> found = repository.findById(oid)
+                .orElseThrow(() -> new NotFoundException(
+                        messageUtil.getMessage("database.not_found", messageUtil.getMessage("model.<%= underscore(entity) %>"))));
+        repository.delete(found);
+
+    }
+
+    @Override
+    public Optional<<%= classify(entity) %>> find<%= classify(entity) %>(Long id) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        <%= classify(entity) %> found = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        messageUtil.getMessage("database.not_found", messageUtil.getMessage("model.<%= underscore(entity) %>"))));
+        return Optional.of(found);
+    }
+
+    @Override
+    public void update<%= classify(entity) %>(<%= classify(entity) %> data) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        repository.findById(data.getOid())
+                .orElseThrow(() -> new NotFoundException(
+                        messageUtil.getMessage("database.not_found", messageUtil.getMessage("model.<%= underscore(entity) %>"))));
+        repository.save(data);
+    }
+
+    @Override
+    public List<<%= classify(entity) %>> find<%= classify(entity) %>History(Long id) {
+        <%= classify(entity) %>Repository repository = repositoryFactory.get<%= classify(entity) %>Repository();
+        return repository.findHistory(id);
+    }
+
+
+}

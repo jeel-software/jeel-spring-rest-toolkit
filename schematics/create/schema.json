@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "id": "SchematicsCrudScaffold",
+  "title": "Crud Scaffold Schema",
+  "type": "object",
+  "properties": {
+    "group": {
+      "description": "The project group id.",
+      "type": "string",
+      "x-prompt": "whats the project group id?"
+    },
+    "artifact": {
+      "description": "The project artifact id.",
+      "type": "string",
+      "x-prompt": "whats the project artifact id?"
+    },
+    "description": {
+      "description": "The project description.",
+      "type": "string",
+      "x-prompt": "whats the project description?"
+    },
+    "package": {
+      "description": "The package.",
+      "type": "string",
+      "x-prompt": "whats package?"
+    }
+  },
+  "required": ["group", "artifact", "description", "package"]
+}

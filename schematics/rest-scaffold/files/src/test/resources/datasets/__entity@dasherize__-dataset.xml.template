@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+<% for (let i of Array(10).keys()) { %>
+    <<%=  uppercase(table) %> OID="<%= i + 1  %>" <% for (let attribute of attributes) { %> <%= uppercase(underscore(attribute.name)) %>="<%= generateFake(attribute) %>" <% } %>/>
+<% } %>
+</dataset>

@@ -1,0 +1,28 @@
+package <%= package %>.http.resources.response;
+
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.hateoas.ResourceSupport;
+
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class <%= classify(entity) %>Response extends ResourceSupport {
+
+  @ApiModelProperty(value = "oid")
+  private Long oid;
+
+<% for (let attribute of attributes) { %>
+  @ApiModelProperty(value = "<%= lowercase(attribute.label) %>")
+  <% if (attribute.type == 'Date' || attribute.type == 'Calendar') { %>
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  <% }%>
+  private <%= attribute.type %> <%= camelize(attribute.name) %>;
+<% } %>
+
+}
